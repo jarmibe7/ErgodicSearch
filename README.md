@@ -9,7 +9,7 @@ The simulation environment was created by Max Muchen Sun, as a project template 
 The goal of this project was to control a robot to move across a space to collect signal measurements, such that the uncertainty (variance) of the box predictions drops below a predefine threshold as quickly as possible.
 
 #### Algorithm Overview
-The main algorithm is ergodic search, which is performed with iLQR. The agent takes binary samples within the sensor bounds, with a positive reading signifying the presence of the hidden box and a negative reading showing the opposite. Before receiving a certain threshold of positive readings, the agent plans an ergodic trajectory using an Iterative Linear Quadratic Regulator (iLQR). The agent completely finishes each planned trajectory before planning another. After receiving a certain threshold of positive readings, the agent then switches to an information maximization approach to eliminate uncertaity in the box's edges.
+The main algorithm is ergodic search, which is performed with iLQR. Ergodic control allows an agent to achieve comprehensive coverage of a search space, and aligns an agent's time spect in a given region with the density of information contained within that region. The agent takes binary samples within the sensor bounds, with a positive reading signifying the presence of the hidden box and a negative reading showing the opposite. Before receiving a certain threshold of positive readings, the agent plans an ergodic trajectory using an Iterative Linear Quadratic Regulator (iLQR). The agent completely finishes each planned trajectory before planning another. After receiving a certain threshold of positive readings, the agent then switches to an information maximization approach to eliminate uncertaity in the box's edges.
 
 Step 1: Check positive sensor reading threshold and determine search state.
 
@@ -60,3 +60,23 @@ END.
 The following is a description of the Armijo line search. Note: This image is part of the course materials of ME 455: Active Learning at Northwestern University, taught by Dr. Todd Murphey and Max Muchen Sun.
 
 ![armijo_line_search.png](Media/armijo_line_search.png)
+
+#### Ergodic Control Description
+In this algorithm, iLQR is used to plan an ergodic trajectory by using an objective function based on the ergodic metric. The descent direction is found by solving the following optimization problem:
+
+\begin{align}
+v(t)^{[k]} = \arg \min_{v(t)} \, 
+& \int_0^T 
+\underbrace{D_1 l(x(t)^{[k]}, u(t)^{[k]}) \cdot z(t)}_{a_x(t)} 
++ \underbrace{D_2 l(x(t)^{[k]}, u(t)^{[k]}) \cdot v(t)}_{b_u(t)} \, dt 
++ \underbrace{Dm(x(T)^{[k]}) \cdot z(T)}_{p_1} \notag \\
+& \quad + \int_0^T z(t)^\top Q_z z(t) + v(t)^\top R_v v(t) \, dt, \tag{5}
+\end{align}
+
+\text{where } z(t) \text{ and } v(t) \text{ are governed by the following linear dynamics:}
+\begin{align}
+z(t) = 
+\underbrace{z_0}_{z_0 = 0} + \int_0^t 
+\underbrace{D_1 f(x(\tau)^{[k]}, u(\tau)^{[k]}) \cdot z(\tau)}_{A(\tau)} + 
+\underbrace{D_2 f(x(\tau)^{[k]}, u(\tau)^{[k]}) \cdot v(\tau)}_{B(\tau)} \, d\tau. \tag{6}
+\end{align}
