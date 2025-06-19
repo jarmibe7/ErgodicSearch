@@ -9,6 +9,8 @@ The simulation environment was created by Max Muchen Sun, as a project template 
 The goal of this project was to control a robot to move across a space to collect signal measurements, such that the uncertainty (variance) of the box predictions drops below a predefine threshold as quickly as possible.
 
 #### Algorithm Overview
+The main algorithm is ergodic search, which is performed with iLQR. The agent takes binary samples within the sensor bounds, with a positive reading signifying the presence of the hidden box and a negative reading showing the opposite. Before receiving a certain threshold of positive readings, the agent plans an ergodic trajectory using an Iterative Linear Quadratic Regulator (iLQR). The agent completely finishes each planned trajectory before planning another. After receiving a certain threshold of positive readings, the agent then switches to an information maximization approach to eliminate uncertaity in the box's edges.
+
 Step 1: Check positive sensor reading threshold and determine search state.
 
 Step 2: Turn predicted boxes into a "target" distribution
@@ -35,3 +37,5 @@ Step 4: Plan control signal for next time step based on search state
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ii. If trajectory is planned, follow it.
 
 Step 5: Save planned control signal and send to gym simulation function.
+
+#### iLQR Description
