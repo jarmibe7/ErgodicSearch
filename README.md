@@ -11,7 +11,7 @@ The goal of this project was to control a robot to move across a space to collec
 #### Algorithm Overview
 Step 1: Check positive sensor reading threshold and determine search state.
 
-    Step 2: Turn predicted boxes into a "target" distribution
+Step 2: Turn predicted boxes into a "target" distribution
       
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a: Use negative/positive sensor readings (based on search state)
 
