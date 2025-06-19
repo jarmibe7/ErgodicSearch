@@ -39,3 +39,20 @@ Step 4: Plan control signal for next time step based on search state
 Step 5: Save planned control signal and send to gym simulation function.
 
 #### iLQR Description
+iLQR is a technique used for solving boundary value problems (BVPs), which are common in optimization and optimal control. It requires a differentiable objective function, dynamics, and boundary conditions. This ergodic search algorithm uses iLQR, followed by Armijo line search to optimize the step size. The iLQR algorithm is as follows: 
+
+```
+ALGORITHM iLQR:
+  Init J(u)                     # Objective function
+  Init f(x, u) , x(0) = x_0     # Dynamics 
+  Init (x_0, u_0)               # Initial conditions
+  i = 0
+  WHILE DJ(u) @ v > epsilon     # v represents the descent direction, @ is the dot product
+      v_i(t) = argmin(DJ(u) @ v + 0.5 * v.T @ v)
+
+      <armijo_line_search>
+
+      u_i+1(t) = u_i(t) + gamma*v_i(t)
+  ENDWHILE
+END.
+```
