@@ -9,7 +9,9 @@ The simulation environment was created by Max Muchen Sun, as a project template 
 The goal of this project was to control a robot to move across a space to collect signal measurements, such that the uncertainty (variance) of the box predictions drops below a predefine threshold as quickly as possible.
 
 #### Algorithm Overview
-The main algorithm is ergodic search, which is performed with iLQR. Ergodic control allows an agent to achieve comprehensive coverage of a search space, and aligns an agent's time spect in a given region with the density of information contained within that region. The agent takes binary samples within the sensor bounds, with a positive reading signifying the presence of the hidden box and a negative reading showing the opposite. Before receiving a certain threshold of positive readings, the agent plans an ergodic trajectory using an Iterative Linear Quadratic Regulator (iLQR). The agent completely finishes each planned trajectory before planning another. After receiving a certain threshold of positive readings, the agent then switches to an information maximization approach to eliminate uncertaity in the box's edges.
+The main algorithm is ergodic search, which is performed with iLQR. Ergodic control allows an agent to achieve comprehensive coverage of a search space, and aligns an agent's time spect in a given region with the density of information contained within that region. The agent takes binary samples within the sensor bounds, with a positive reading signifying the presence of the hidden box and a negative reading showing the opposite. 
+
+The agent also uses a simple state machine and switch condition to determine its planning strategy. Before receiving a certain threshold of positive readings, the agent plans an ergodic trajectory using an Iterative Linear Quadratic Regulator (iLQR). The agent completely finishes each planned trajectory before planning another. After receiving a certain threshold of positive readings, the agent then switches to an information maximization approach to eliminate uncertaity in the box's edges. This second state is accomplished by planning routes to the possible box corners with the most uncertainty.
 
 Step 1: Check positive sensor reading threshold and determine search state.
 
@@ -31,8 +33,7 @@ Step 4: Plan control signal for next time step based on search state
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b: Positive sensor reading threshold reached
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i. If trajectory isn't planned, plan route to corner with most amount of variance in
-               its possible location.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i. If trajectory isn't planned, plan route to corner with most amount of variance in its possible location.
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ii. If trajectory is planned, follow it.
 
@@ -64,19 +65,8 @@ The following is a description of the Armijo line search. Note: This image is pa
 #### Ergodic Control Description
 In this algorithm, iLQR is used to plan an ergodic trajectory by using an objective function based on the ergodic metric. The descent direction is found by solving the following optimization problem:
 
-\begin{align}
-v(t)^{[k]} = \arg \min_{v(t)} \, 
-& \int_0^T 
-\underbrace{D_1 l(x(t)^{[k]}, u(t)^{[k]}) \cdot z(t)}_{a_x(t)} 
-+ \underbrace{D_2 l(x(t)^{[k]}, u(t)^{[k]}) \cdot v(t)}_{b_u(t)} \, dt 
-+ \underbrace{Dm(x(T)^{[k]}) \cdot z(T)}_{p_1} \notag \\
-& \quad + \int_0^T z(t)^\top Q_z z(t) + v(t)^\top R_v v(t) \, dt, \tag{5}
-\end{align}
+![ergodic_objective.png](Media/ergodic_objective.png)
 
-\text{where } z(t) \text{ and } v(t) \text{ are governed by the following linear dynamics:}
-\begin{align}
-z(t) = 
-\underbrace{z_0}_{z_0 = 0} + \int_0^t 
-\underbrace{D_1 f(x(\tau)^{[k]}, u(\tau)^{[k]}) \cdot z(\tau)}_{A(\tau)} + 
-\underbrace{D_2 f(x(\tau)^{[k]}, u(\tau)^{[k]}) \cdot v(\tau)}_{B(\tau)} \, d\tau. \tag{6}
-\end{align}
+The ergodic metric can be calculated by computing the Fourier transform of a target trajectory coverage. In this specific case, the probability density function of the target distribution is estimated using Kernel Density Estimation (KDE) on the negative sensor readings. This distribution is then inverted before being passed into the iLQR, as the areas with many negative sensor readings should be avoided.
+
+While technically optional, the addition of a barrier function is necessary to keep the agent within the bounds of the desired search space. Fourier basis functions can still be evaluated outside of seach space bounds, and due to their periodic nature these extraneous evaluations may appear similar to functions evaluated within seach space bounds. This can result in the agent permanently leaving the search space. The added barrier function simply acts as a harsh penalty for leaving search space bounds.
