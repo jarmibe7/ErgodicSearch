@@ -56,3 +56,7 @@ ALGORITHM iLQR:
   ENDWHILE
 END.
 ```
+
+The following is a description of the Armijo line search. Note: This image is part of the course materials of ME 455: Active Learning at Northwestern University, taught by Dr. Todd Murphey and Max Muchen Sun.
+
+![armijo_line_search.png](Media/armijo_line_search.png)
